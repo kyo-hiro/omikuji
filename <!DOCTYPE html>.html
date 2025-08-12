@@ -2,13 +2,13 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>おみくじアプリ最終版</title>
+<title>おみくじアプリ</title>
 <style>
   body {
     font-family: "Hiragino Kaku Gothic ProN", sans-serif;
     text-align: center;
     margin-top: 50px;
-    transition: background-color 0.5s;
+    transition: background-color 0.5s ease;
   }
   h1 {
     font-size: 2em;
@@ -26,10 +26,6 @@
   button:hover {
     background-color: #e5533d;
   }
-  button:disabled {
-    background-color: gray;
-    cursor: not-allowed;
-  }
   #result {
     margin-top: 30px;
     font-size: 2.5em;
@@ -38,7 +34,7 @@
   #message {
     margin-top: 20px;
     font-size: 1.2em;
-    color: #fff;
+    color: #333;
   }
   #image {
     margin-top: 20px;
@@ -50,95 +46,79 @@
 <body>
 
 <h1>おみくじ</h1>
-<button id="drawBtn" onclick="drawOmikuji()">引く！</button>
+<button onclick="drawOmikuji()">引く！</button>
 
 <div id="result"></div>
 <img id="image" src="" alt="" style="display:none;">
 <div id="message"></div>
 
+<!-- 効果音 -->
+<audio id="sound-daikichi" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+<audio id="sound-chuukichi" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+<audio id="sound-shoukichi" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"></audio>
+<audio id="sound-suekichi" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"></audio>
+
 <script>
-// 運勢データ
-const fortunes = [
-  {
-    text: "大吉",
-    color: "red",
-    bg: "#ffcccc",
-    img: "https://i.imgur.com/jQ7PcdU.png",
-    msg: "今日は最高の一日になりそう！",
-    sound: "https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"
-  },
-  {
-    text: "中吉",
-    color: "orange",
-    bg: "#ffe4b5",
-    img: "https://i.imgur.com/9sz0V0L.png",
-    msg: "まずまず順調。チャンスは逃さないで！",
-    sound: "https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"
-  },
-  {
-    text: "小吉",
-    color: "green",
-    bg: "#ccffcc",
-    img: "https://i.imgur.com/f4eZyXb.png",
-    msg: "小さな幸せに気づける日。",
-    sound: "https://actions.google.com/sounds/v1/cartoon/wood_twang.ogg"
-  },
-  {
-    text: "末吉",
-    color: "blue",
-    bg: "#cce5ff",
-    img: "https://i.imgur.com/7k6V76B.png",
-    msg: "焦らずコツコツ進めましょう。",
-    sound: "https://actions.google.com/sounds/v1/cartoon/siren_whistle.ogg"
-  }
-];
-
-// ページ読み込み時に今日引いたか確認
-window.onload = function() {
-  const lastDate = localStorage.getItem("omikujiDate");
-  const today = new Date().toDateString();
-
-  if (lastDate === today) {
-    // すでに引いている場合は結果を表示してボタン無効化
-    const savedIndex = localStorage.getItem("omikujiIndex");
-    showResult(fortunes[savedIndex]);
-    document.getElementById("drawBtn").disabled = true;
-  }
-};
-
 function drawOmikuji() {
-  const today = new Date().toDateString();
+  const fortunes = [
+    { 
+      text: "大吉", 
+      color: "red", 
+      bgColor: "#ffe4e1", 
+      img: "https://i.imgur.com/jQ7PcdU.png", 
+      msg: "今日は最高の一日になりそう！行動力UP！", 
+      soundId: "sound-daikichi"
+    },
+    { 
+      text: "中吉", 
+      color: "orange", 
+      bgColor: "#fff5e6", 
+      img: "https://i.imgur.com/9sz0V0L.png", 
+      msg: "まずまず順調。チャンスを逃さないで！", 
+      soundId: "sound-chuukichi"
+    },
+    { 
+      text: "小吉", 
+      color: "green", 
+      bgColor: "#e6ffe6", 
+      img: "https://i.imgur.com/f4eZyXb.png", 
+      msg: "小さな幸せに気づける日です。感謝を忘れずに。", 
+      soundId: "sound-shoukichi"
+    },
+    { 
+      text: "末吉", 
+      color: "blue", 
+      bgColor: "#e6f0ff", 
+      img: "https://i.imgur.com/7k6V76B.png", 
+      msg: "焦らずコツコツ進めましょう。", 
+      soundId: "sound-suekichi"
+    }
+  ];
+
   const randomIndex = Math.floor(Math.random() * fortunes.length);
   const selected = fortunes[randomIndex];
 
-  // 結果を表示
-  showResult(selected);
-
-  // 日付と結果を保存
-  localStorage.setItem("omikujiDate", today);
-  localStorage.setItem("omikujiIndex", randomIndex);
-
-  // ボタン無効化
-  document.getElementById("drawBtn").disabled = true;
-}
-
-function showResult(selected) {
+  // 要素取得
   const resultEl = document.getElementById("result");
   const imageEl = document.getElementById("image");
   const messageEl = document.getElementById("message");
 
+  // 表示更新
   resultEl.textContent = selected.text;
   resultEl.style.color = selected.color;
-  document.body.style.backgroundColor = selected.bg;
-
   imageEl.src = selected.img;
   imageEl.style.display = "block";
-
   messageEl.textContent = selected.msg;
 
-  // 効果音再生
-  const audio = new Audio(selected.sound);
-  audio.play();
+  // 背景色変更
+  document.body.style.backgroundColor = selected.bgColor;
+
+  // 効果音再生（他の音を停止）
+  document.querySelectorAll("audio").forEach(audio => {
+    audio.pause();
+    audio.currentTime = 0;
+  });
+  document.getElementById(selected.soundId).play();
 }
 </script>
 
